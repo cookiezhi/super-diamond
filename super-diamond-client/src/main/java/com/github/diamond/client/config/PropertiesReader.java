@@ -31,7 +31,7 @@ public class PropertiesReader extends LineNumberReader {
 	private static final Pattern PROPERTY_PATTERN = Pattern
 			.compile("(([\\S&&[^\\\\" + new String(SEPARATORS)
 					+ "]]|\\\\.)*)(\\s*(\\s+|[" + new String(SEPARATORS)
-					+ "])\\s*)(.*)");
+					+ "])\\s*)(.*)",Pattern.MULTILINE | Pattern.DOTALL);
 
 	/** Constant for the index of the group for the key. */
 	private static final int IDX_KEY = 1;
@@ -81,11 +81,11 @@ public class PropertiesReader extends LineNumberReader {
 				continue;
 			}
 
-			line = line.trim();
+			line = trimEnd(line);
 
 			if (checkCombineLines(line)) {
 				line = line.substring(0, line.length() - 1);
-				buffer.append(line);
+				buffer.append(line + "\r\n");
 			} else {
 				buffer.append(line);
 				break;
@@ -93,6 +93,22 @@ public class PropertiesReader extends LineNumberReader {
 		}
 		return buffer.toString();
 	}
+	
+	private String trimEnd(String str) {
+		if (str == null) {
+			return str;
+		}
+		
+		char[] value = str.toCharArray();
+		
+        int len = value.length;
+        
+        while (value[len - 1] <= ' ') {
+            len--;
+        }
+        
+        return ((len < value.length)) ? str.substring(0, len) : str;
+    }
 
 	/**
 	 * Parses the next property from the input stream and stores the found name
@@ -175,7 +191,7 @@ public class PropertiesReader extends LineNumberReader {
 	 * It also ensures that the property value is correctly escaped.
 	 */
 	protected void initPropertyValue(String value) {
-		propertyValue = unescapeJava(value);
+		propertyValue = value;
 	}
 
 	/**
